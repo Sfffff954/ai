@@ -82,7 +82,7 @@ ollama pull qwen2.5:latest
 ollama pull qwen2.5-coder:latest
 ollama pull llava
 ```
-
+~
 ---
 
 ## 💬 Chat Commands
