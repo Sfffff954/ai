@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ghostfish_logo.png" width="200" alt="Ghostfish Logo"/>
+<img width="808" height="1113" alt="ghostfish_logo" src="https://github.com/user-attachments/assets/ee844f5a-80b9-425f-9035-0167947b1f9c" />
 </p>
 
 <h1 align="center">🐡 Ghostfish — Local AI powered by Ollama</h1>
@@ -169,7 +169,6 @@ Ghostfish/
 ---
 
 ## 📄 License
-<img width="808" height="1113" alt="ghostfish_logo" src="https://github.com/user-attachments/assets/28d5ec51-75e6-4ed0-9d60-738e70725297" />
 
 MIT — free to use, modify and share.
 
