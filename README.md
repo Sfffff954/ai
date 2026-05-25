@@ -169,6 +169,7 @@ Ghostfish/
 ---
 
 ## 📄 License
+<img width="808" height="1113" alt="ghostfish_logo" src="https://github.com/user-attachments/assets/28d5ec51-75e6-4ed0-9d60-738e70725297" />
 
 MIT — free to use, modify and share.
 
