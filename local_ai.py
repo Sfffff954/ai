@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════╗
-║  Geist-KI  —  Lokale KI mit Ollama                  ║
+║  Ghostfish  —  Local AI powered by Ollama                  ║
 ║  + Bots  + Auto-Suche  + Crypto-Guesser             ║
 ║  + Selbstlernen  + Streaming  + Gedächtnis           ║
 ╚══════════════════════════════════════════════════════╝
@@ -67,7 +67,7 @@ CODE_EXTENSIONS = {
     ".php":"PHP",".rb":"Ruby",".swift":"Swift",".kt":"Kotlin",
     ".lua":"Lua",".r":"R",".m":"MATLAB",".asm":"Assembly"
 }
-AI_NAME         = "Geist"
+AI_NAME         = "Ghostfish"
 
 ACCENT   = "#a78bfa"
 ACCENT2  = "#7c3aed"
@@ -148,7 +148,7 @@ ex = Path(LEARN_FOLDER) / "beispiel.txt"
 if not ex.exists():
     ex.write_text("hey wie gehts\nalles gut danke!\njoa passt haha\n", encoding="utf-8")
 
-SYSTEM_BASE = """You are Geist — an honest, warm friend. Not a robot.
+SYSTEM_BASE = """You are Ghostfish — an honest, warm friend. Not a robot.
 
 ═══ MOST IMPORTANT RULE ═══
 Never make things up. If you don't know → say "I don't know" or "not sure about that"
@@ -242,95 +242,163 @@ EXAMPLE SENTENCES:
 """
 
 
+
+
 # ══════════════════════════════════════════════════════════════════════════════
-#  Geist-Canvas
+#  Ghostfish Canvas  — animierter Pufferfisch
 # ══════════════════════════════════════════════════════════════════════════════
 class GhostCanvas(tk.Canvas):
     IDLE="idle"; THINK="think"; HAPPY="happy"; TALK="talk"
 
-    def __init__(self, master, size=100, **kw):
+    def __init__(self, master, size=110, **kw):
         super().__init__(master, width=size, height=size,
                          bg=BG_MID, highlightthickness=0, **kw)
-        self.size=size; self.state=self.IDLE
-        self._t=0.0; self._blink=0; self._particles=[]; self._running=True
+        self.size       = size
+        self.state      = self.IDLE
+        self._t         = 0.0
+        self._blink     = 0
+        self._running   = True
+        self._particles = []
         self._animate()
 
     def set_state(self, s):
         self.state = s
-        if s == self.HAPPY: self._spawn()
+        if s == self.HAPPY:
+            self._spawn()
 
     def _spawn(self):
-        cx,cy = self.size/2, self.size*0.45
-        for _ in range(14):
-            a=random.uniform(0,2*math.pi); sp=random.uniform(1.2,3.0)
-            self._particles.append([cx,cy,math.cos(a)*sp,math.sin(a)*sp-1.5,0,random.randint(18,30)])
+        import math as m
+        cx,cy = self.size/2, self.size/2
+        for _ in range(16):
+            a  = random.uniform(0, 2*m.pi)
+            sp = random.uniform(1.5, 3.5)
+            self._particles.append([cx,cy,m.cos(a)*sp,m.sin(a)*sp-1.5,0,random.randint(18,30)])
 
     def _animate(self):
         if not self._running: return
-        self._t+=0.05; self._blink=(self._blink+1)%80
-        self.delete("all"); self._draw()
+        self._t    += 0.05
+        self._blink = (self._blink+1) % 90
+        self.delete("all")
+        self._draw()
         self.after(40, self._animate)
 
     def _draw(self):
-        s,cx,t=self.size,self.size/2,self._t
-        bob=(math.sin(t*4)*5 if self.state==self.HAPPY else
-             math.sin(t*1.5)*3 if self.state==self.THINK else math.sin(t)*4)
-        sy=s*0.88+bob*0.3
-        self.create_oval(cx-20,sy-4,cx+20,sy+4,fill="#1a0a3a",outline="")
-        gx1,gy1=cx-26,s*0.22+bob; gx2,gy2=cx+26,s*0.75+bob
-        ar=2+math.sin(t*2)
-        self.create_oval(gx1-ar,gy1-ar,gx2+ar,gy2+ar,fill="",outline="#7c3aed",width=ar*1.5)
-        pts=[]
-        for i in range(13):
-            a=math.pi+math.pi*i/12
-            pts.extend([cx+26*math.cos(a),(gy1+gy2)/2+26*math.sin(a)])
-        wa=4+math.sin(t*3)*2
-        for i in range(11):
-            px=gx1+(gx2-gx1)*i/10
-            pts.extend([px,gy2+math.sin(t*3+i*0.8)*wa])
-        self.create_polygon(pts,fill=ACCENT2,outline=ACCENT,width=1.5,smooth=True)
-        ey=(gy1+gy2)/2-4+bob
-        bl=self._blink not in range(3,6)
-        for ox in [-8,8]:
-            ex_=cx+ox
-            if bl:
-                if self.state==self.HAPPY:
-                    self.create_arc(ex_-4,ey-4,ex_+4,ey+4,start=0,extent=180,style="arc",outline="white",width=2)
-                else:
-                    self.create_oval(ex_-3,ey-3,ex_+3,ey+3,fill="white",outline="")
-                    px=ex_+math.sin(t*0.7)*1.2; py=ey+math.cos(t*0.5)*1.2
-                    self.create_oval(px-1.5,py-1.5,px+1.5,py+1.5,fill="#1a0a3a",outline="")
+        import math as m
+        s,cx,t = self.size, self.size/2, self._t
+
+        if   self.state==self.HAPPY: bob=m.sin(t*4)*6;  scale=1+m.sin(t*4)*0.05
+        elif self.state==self.THINK: bob=m.sin(t*1.5)*3; scale=1.0
+        elif self.state==self.TALK:  bob=m.sin(t*7)*2;  scale=1.0
+        else:                        bob=m.sin(t)*4;    scale=1.0
+
+        cy = s/2 + bob
+        R  = int(s*0.30 * scale)   # body radius
+
+        # Shadow
+        self.create_oval(cx-R*0.7,cy+R-2,cx+R*0.7,cy+R+5,fill="#0a0a1a",outline="")
+
+        # ── Grey fins (behind body) ──
+        # Left fin - big oval
+        self.create_oval(cx-R*2.1, cy-R*0.55,
+                         cx-R*0.4, cy+R*0.55,
+                         fill="#777777", outline="#111111", width=1.5)
+        # Right fin
+        self.create_oval(cx+R*0.4,  cy-R*0.55,
+                         cx+R*2.1,  cy+R*0.55,
+                         fill="#777777", outline="#111111", width=1.5)
+
+        # ── Spikes all around ──
+        spike_angles = [i*22.5 for i in range(16)]
+        inner = R + 1
+        outer = R + int(R*0.32)
+        for angle_deg in spike_angles:
+            ang = m.radians(angle_deg)
+            # spike base: two points slightly offset
+            off = m.radians(7)
+            x1 = cx + inner*m.cos(ang-off);  y1 = cy + inner*m.sin(ang-off)
+            x2 = cx + outer*m.cos(ang);      y2 = cy + outer*m.sin(ang)
+            x3 = cx + inner*m.cos(ang+off);  y3 = cy + inner*m.sin(ang+off)
+            self.create_polygon(x1,y1,x2,y2,x3,y3,
+                               fill="#ffffff",outline="#111111",width=1.5)
+
+        # ── Main body circle ──
+        self.create_oval(cx-R,cy-R,cx+R,cy+R,
+                        fill="#ffffff",outline="#111111",width=2)
+
+        # ── Belly lines (short vertical ticks) ──
+        tick_y = cy + R*0.52
+        for i in range(-3,4):
+            tx = cx + i*(R*0.18)
+            self.create_line(tx, tick_y, tx, tick_y+R*0.2,
+                           fill="#cccccc",width=1.5,capstyle="round")
+        for i in range(-2,3):
+            tx = cx + i*(R*0.2)
+            self.create_line(tx, tick_y+R*0.22, tx, tick_y+R*0.4,
+                           fill="#cccccc",width=1.5,capstyle="round")
+
+        # ── Eyes ──
+        blink = self._blink not in range(2,5)
+        er    = int(R*0.38)   # eye radius
+        ex_off= int(R*0.44)   # eye x offset
+
+        for sign in [-1,1]:
+            ex = int(cx + sign*ex_off)
+            ey = int(cy - R*0.08)
+            # white
+            self.create_oval(ex-er,ey-er,ex+er,ey+er,fill="#ffffff",outline="#111111",width=1.5)
+            if blink:
+                # pupil
+                self.create_oval(ex-int(er*0.7),ey-int(er*0.6)+3,
+                                ex+int(er*0.7),ey+int(er*0.8)+3,
+                                fill="#111111",outline="")
+                # shine
+                self.create_oval(ex-int(er*0.38),ey-int(er*0.42),
+                                ex+int(er*0.1), ey+int(er*0.1),
+                                fill="#ffffff",outline="")
             else:
-                self.create_line(ex_-3,ey,ex_+3,ey,fill="white",width=2,capstyle="round")
-        my=ey+9
+                # closed eye line
+                self.create_line(ex-er+3,ey,ex+er-3,ey,fill="#111111",width=2,capstyle="round")
+
+        # ── Smile ──
+        smile_r = int(R*0.5)
         if self.state==self.HAPPY:
-            self.create_arc(cx-7,my-4,cx+7,my+4,start=200,extent=140,style="arc",outline="white",width=2)
-        elif self.state==self.THINK:
-            self.create_line(cx-5,my+2,cx+5,my,fill="white",width=2,capstyle="round")
+            self.create_arc(cx-smile_r,cy+R*0.18,cx+smile_r,cy+R*0.62,
+                           start=200,extent=140,style="arc",outline="#111111",width=2)
         elif self.state==self.TALK:
-            oh=abs(math.sin(t*6))*4+2
-            self.create_oval(cx-4,my-oh,cx+4,my+oh,fill="#1a0a3a",outline="white",width=1.5)
+            oh = int(abs(m.sin(t*6))*R*0.15+3)
+            self.create_oval(cx-oh,cy+R*0.28-oh//2,cx+oh,cy+R*0.28+oh,
+                           fill="#111111",outline="#111111")
         else:
-            self.create_arc(cx-6,my-3,cx+6,my+3,start=200,extent=140,style="arc",outline="white",width=1.5)
+            self.create_arc(cx-smile_r,cy+R*0.2,cx+smile_r,cy+R*0.58,
+                           start=205,extent=130,style="arc",outline="#111111",width=2)
+
+        # ── Think bubbles ──
         if self.state==self.THINK:
-            for r,ox,oy in [(3,16,-18),(5,23,-28),(6,29,-38)]:
-                self.create_oval(cx+ox-r,gy1+bob+oy-r,cx+ox+r,gy1+bob+oy+r,fill=ACCENT2,outline=ACCENT,width=1)
+            for br,bx,by in [(3,18,-38),(5,26,-50),(7,32,-62)]:
+                self.create_oval(cx+bx-br,cy+by-br,cx+bx+br,cy+by+br,
+                               fill=ACCENT2,outline=ACCENT,width=1)
+
+        # ── Happy glow ring ──
+        if self.state==self.HAPPY:
+            gr = 4+m.sin(t*4)*2
+            self.create_oval(cx-gr,cy-gr,cx+gr,cy+gr,
+                           fill="",outline="#4ade80",width=gr)
+
+        # ── Particles ──
         alive=[]
         for p in self._particles:
-            p[0]+=p[2]; p[1]+=p[3]; p[3]+=0.15; p[4]+=1
+            p[0]+=p[2];p[1]+=p[3];p[3]+=0.18;p[4]+=1
             if p[4]<p[5]:
-                r=max(1,int(4*(1-p[4]/p[5])))
-                self.create_oval(p[0]-r,p[1]-r,p[0]+r,p[1]+r,fill=ACCENT,outline="")
+                pr=max(1,int(5*(1-p[4]/p[5])))
+                col=["#4ade80","#a78bfa","#60a5fa","#fbbf24"][int(p[4])%4]
+                self.create_oval(p[0]-pr,p[1]-pr,p[0]+pr,p[1]+pr,fill=col,outline="")
                 alive.append(p)
         self._particles=alive
 
     def destroy(self):
-        self._running=False; super().destroy()
+        self._running=False
+        super().destroy()
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  Chat-Verlauf Eintrag
-# ══════════════════════════════════════════════════════════════════════════════
 class ChatEntry:
     def __init__(self, title, history, created=None, path=None):
         self.title   = title
@@ -369,7 +437,7 @@ class ApiManager:
     SERVICES = {
         "elevenlabs": {
             "name": "ElevenLabs",
-            "desc": "Text-to-Speech — Geist kann sprechen",
+            "desc": "Text-to-Speech — Ghostfish can speak",
             "url":  "https://elevenlabs.io",
             "icon": "🔊"
         },
@@ -440,7 +508,7 @@ class ApiManager:
 class ProfileManager:
     DEFAULT_PROFILES = {
         "🤝 Freund": {
-            "system": "Du bist Geist — ein warmer, empathischer Freund. Kurz, direkt, aufmunternd.",
+            "system": "You are Ghostfish — ein warmer, empathischer Freund. Kurz, direkt, aufmunternd.",
             "temp": 0.88, "model_hint": ""
         },
         "💻 Code-Experte": {
@@ -802,11 +870,12 @@ class CryptoWindow(ctk.CTkToplevel):
 
     # Risiko-Level Farben
     RISK_COLORS = {"LOW": "#4ade80", "MEDIUM": "#f59e0b", "HIGH": "#f87171", "VERY HIGH": "#ef4444"}
-    SIGNAL_COLORS = {"KAUFEN": "#4ade80", "HALTEN": "#f59e0b", "VERKAUFEN": "#f87171", "ABWARTEN": "#a78bfa"}
+    SIGNAL_COLORS = {"BUY": "#4ade80", "HOLD": "#f59e0b", "SELL": "#f87171",
+                     "WAIT": "#a78bfa", "...": "#6b6b8a"}
 
     def __init__(self, master, model_var, system_fn):
         super().__init__(master)
-        self.title("🪙  Geist Crypto Pro")
+        self.title("🪙  Ghostfish Crypto")
         self.geometry("1280x800")
         self.minsize(1000, 640)
         self.configure(fg_color=BG_DARK)
@@ -1034,7 +1103,7 @@ class CryptoWindow(ctk.CTkToplevel):
                                      segmented_button_selected_color=ACCENT2,
                                      segmented_button_selected_hover_color=ACCENT)
         self._tabs.grid(row=2,column=0,sticky="nsew")
-        for t in ["🤖 Analyse","📰 News","🧠 Gelernt"]:
+        for t in ["🐟 Analyse","📰 News","🧠 Gelernt"]:
             self._tabs.add(t)
 
         def _tb(parent, font_size=12):
@@ -1044,7 +1113,7 @@ class CryptoWindow(ctk.CTkToplevel):
             tb.pack(fill="both",expand=True)
             return tb
 
-        self.analysis_box = _tb(self._tabs.tab("🤖 Analyse"))
+        self.analysis_box = _tb(self._tabs.tab("🐟 Analyse"))
         self.news_box     = _tb(self._tabs.tab("📰 News"))
         self.learn_box    = _tb(self._tabs.tab("🧠 Gelernt"))
         self._write(self.analysis_box, "← Coin auswählen um KI-Signal + Kaufempfehlung zu sehen")
@@ -1064,7 +1133,7 @@ class CryptoWindow(ctk.CTkToplevel):
                 f"&include_24hr_change=true&include_market_cap=true"
                 f"&include_24hr_vol=true&include_7d_change=true"
                 f"&include_last_updated_at=true",
-                timeout=15, headers={"User-Agent":"Geist-KI/1.0"})
+                timeout=15, headers={"User-Agent":"Ghostfish/1.0"})
             r.raise_for_status()
             self._prev_prices = {k: v.get("usd",0) for k,v in self._prices.items()}
             self._prices = r.json()
@@ -1185,7 +1254,7 @@ class CryptoWindow(ctk.CTkToplevel):
         self._render_coins()
         self._update_info_banner(cid)
         self._draw_chart(cid)
-        self._tabs.set("🤖 Analyse")
+        self._tabs.set("🐟 Analyse")
         self._analyze_coin(name, cid, sym, icon, color)
         self._fetch_news(name, sym)
 
@@ -1306,7 +1375,7 @@ class CryptoWindow(ctk.CTkToplevel):
             q = urllib.parse.quote(f"{name} crypto price news today")
             r = requests.get(
                 f"https://api.duckduckgo.com/?q={q}&format=json&no_html=1",
-                timeout=10, headers={"User-Agent":"Geist-KI/1.0"})
+                timeout=10, headers={"User-Agent":"Ghostfish/1.0"})
             d   = r.json()
             out = []
             if d.get("AbstractText"): out.append(f"📖 {d['AbstractText'][:500]}")
@@ -1329,71 +1398,71 @@ class CryptoWindow(ctk.CTkToplevel):
         c7  = d.get("usd_7d_change", 0) or 0
         mc  = d.get("usd_market_cap", 0) or 0
         vol = d.get("usd_24h_vol", 0) or 0
-        news = self._news_cache.get(sym, "")
+        news    = self._news_cache.get(sym, "")
         err_ctx = self._get_error_context()
 
-        # Vergangene Vorhersagen für diesen Coin
         past = [x for x in self._learned["predictions"] if x["sym"]==sym][-5:]
         past_txt = ""
         if past:
-            past_txt = "Meine letzten Signale für " + sym + ":\n"
+            past_txt = f"My past signals for {sym}:\n"
             for x in past:
-                s = "✓" if x.get("correct") else ("✗" if x.get("checked") else "⏳")
+                s   = "CORRECT" if x.get("correct") else ("WRONG" if x.get("checked") else "PENDING")
                 pct = f" ({x['pct_change']:+.1f}%)" if x.get("pct_change") else ""
-                past_txt += f"  {s} {x['date'][:10]}: {x['signal']} @ ${x['price_at']:,.2f}{pct}\n"
+                past_txt += f"  {s}: {x['date'][:10]} — {x['signal']} @ ${x['price_at']:,.4f}{pct}\n"
 
-        self._write(self.analysis_box, f"Analysiere {icon} {name}...")
+        self._write(self.analysis_box, f"Analyzing {icon} {name}...")
         self._update_signal_box("...", "")
 
         def _run():
             try:
-                p_fmt = (f"${p:,.6f}" if p<0.001 else
-                         f"${p:,.4f}" if p<0.1 else f"${p:,.2f}")
-                mc_str  = f"${mc/1e9:.2f}B" if mc>1e9 else f"${mc/1e6:.0f}M"
-                vol_str = f"${vol/1e9:.2f}B" if vol>1e9 else f"${vol/1e6:.0f}M"
+                p_fmt    = (f"${p:,.6f}" if p<0.001 else f"${p:,.4f}" if p<0.1 else f"${p:,.2f}")
+                mc_str   = f"${mc/1e9:.2f}B" if mc>1e9 else f"${mc/1e6:.0f}M"
+                vol_str  = f"${vol/1e9:.2f}B" if vol>1e9 else f"${vol/1e6:.0f}M"
                 vol_mcap = f"{vol/mc*100:.1f}" if mc else "0"
-                news_section = ("NEWS:\n" + news[:400]) if news else ""
-                entry_hint   = f"jetzt bei {p_fmt}"
 
                 msg = (
-                    f"Crypto Trading Analysis Request:\n\n"
-                    f"COIN: {icon} {name} ({sym})\n"
-                    f"CURRENT PRICE: {p_fmt}\n"
-                    f"24h CHANGE:    {c24:+.2f}%\n"
-                    f"7d CHANGE:     {c7:+.2f}%\n"
-                    f"MARKET CAP:    {mc_str}\n"
-                    f"24h VOLUME:    {vol_str}\n"
-                    f"VOL/MCAP:      {vol_mcap}% (hoeher = mehr Aktivitaet)\n\n"
-                    f"{news_section}\n"
-                    f"{past_txt}\n"
-                    f"{err_ctx}\n\n"
-                    "Du bist ein professioneller Crypto-Trader. Gib eine KLARE Empfehlung.\n\n"
-                    "Antworte GENAU in diesem Format:\n\n"
-                    "SIGNAL: [KAUFEN / HALTEN / VERKAUFEN / ABWARTEN]\n"
-                    "RISIKO: [LOW / MEDIUM / HIGH / VERY HIGH]\n"
-                    "RICHTUNG: [UP / DOWN / SIDEWAYS]\n"
-                    "KONFIDENZ: [1-100]%\n\n"
-                    "ANALYSE:\n"
-                    "[2-3 Saetze technische Analyse]\n\n"
-                    "WARUM KAUFEN/NICHT KAUFEN:\n"
-                    "[Klare Begruendung ob man jetzt einsteigen sollte]\n\n"
-                    f"ENTRY: [Empfohlener Einstiegspreis oder '{entry_hint}']\n"
-                    "STOP LOSS: [Preis bei dem man aussteigen sollte]\n"
-                    "TAKE PROFIT: [Zielpreis]\n\n"
-                    "FAZIT: [1 Satz klare Empfehlung]\n\n"
-                    "WICHTIG: Dies ist KI-Spekulation, kein Finanzratschlag!"
+                    f"=== CRYPTO ANALYSIS REQUEST ===\n\n"
+                    f"COIN:       {icon} {name} ({sym})\n"
+                    f"PRICE:      {p_fmt}\n"
+                    f"24h CHANGE: {c24:+.2f}%\n"
+                    f"7d CHANGE:  {c7:+.2f}%\n"
+                    f"MARKET CAP: {mc_str}\n"
+                    f"24h VOLUME: {vol_str}\n"
+                    f"VOL/MCAP:   {vol_mcap}%\n"
+                    + (f"\nRECENT NEWS:\n{news[:400]}\n" if news else "")
+                    + (f"\n{past_txt}" if past_txt else "")
+                    + (f"\nLEARNED MISTAKES (avoid repeating):\n{err_ctx}\n" if err_ctx else "")
+                    + "\n=== RESPOND EXACTLY IN THIS FORMAT ===\n\n"
+                    "SIGNAL: BUY\n"
+                    "(or HOLD, SELL, WAIT)\n\n"
+                    "RISK: LOW\n"
+                    "(or MEDIUM, HIGH, VERY HIGH)\n\n"
+                    "DIRECTION: UP\n"
+                    "(or DOWN, SIDEWAYS)\n\n"
+                    "CONFIDENCE: 75%\n\n"
+                    "ANALYSIS:\n"
+                    "2-3 sentences of technical analysis based on the data above.\n\n"
+                    "SHOULD YOU BUY?\n"
+                    "Clear explanation of whether to enter now or wait.\n\n"
+                    f"ENTRY: {p_fmt} or specify a better entry price\n"
+                    "STOP LOSS: price to exit to limit losses\n"
+                    "TAKE PROFIT: target price\n\n"
+                    "SUMMARY: One sentence clear recommendation.\n\n"
+                    "DISCLAIMER: This is AI speculation, not financial advice."
                 )
 
-                r = requests.post(f"{OLLAMA_URL}/api/chat",
+                r = requests.post(
+                    f"{OLLAMA_URL}/api/chat",
                     json={"model": self.model_var.get(),
-                          "messages":[
-                              {"role":"system","content":
+                          "messages": [
+                              {"role": "system", "content":
                                "You are an expert crypto trader and technical analyst. "
-                               "Be precise, data-driven, and always give a CLEAR signal. "
-                               "Learn from past mistakes listed in the prompt. "
-                               "Never be vague — always give a definitive recommendation."},
-                              {"role":"user","content":msg}],
-                          "stream":True,"options":{"temperature":0.3}},
+                               "Always respond in English. Be precise and data-driven. "
+                               "Always give a CLEAR signal. Learn from past mistakes. "
+                               "Never be vague — give a definitive recommendation."},
+                              {"role": "user", "content": msg}],
+                          "stream": True,
+                          "options": {"temperature": 0.3}},
                     timeout=120, stream=True)
 
                 full = ""
@@ -1401,29 +1470,46 @@ class CryptoWindow(ctk.CTkToplevel):
                     if not line: continue
                     try:
                         chunk = json.loads(line.decode("utf-8"))
-                        tok   = chunk.get("message",{}).get("content","")
+                        tok   = chunk.get("message", {}).get("content", "")
                         if tok:
                             full += tok
                             self.after(0, lambda t=full: self._write(self.analysis_box, t))
                         if chunk.get("done"): break
                     except: continue
 
-                # Signal + Risiko extrahieren
-                sig_m  = re.search(r'SIGNAL:\s*(KAUFEN|HALTEN|VERKAUFEN|ABWARTEN)', full, re.I)
-                risk_m = re.search(r'RISIKO:\s*(LOW|MEDIUM|HIGH|VERY HIGH)', full, re.I)
-                dir_m  = re.search(r'RICHTUNG:\s*(UP|DOWN|SIDEWAYS)', full, re.I)
-                conf_m = re.search(r'KONFIDENZ:\s*(\d+)', full)
+                # Extract signal — support both German and English
+                sig_m  = re.search(
+                    r'SIGNAL:\s*(BUY|SELL|HOLD|WAIT|KAUFEN|HALTEN|VERKAUFEN|ABWARTEN)',
+                    full, re.I)
+                risk_m = re.search(
+                    r'RISK:\s*(LOW|MEDIUM|HIGH|VERY HIGH)|RISIKO:\s*(LOW|MEDIUM|HIGH|VERY HIGH)',
+                    full, re.I)
+                dir_m  = re.search(
+                    r'DIRECTION:\s*(UP|DOWN|SIDEWAYS)|RICHTUNG:\s*(UP|DOWN|SIDEWAYS)',
+                    full, re.I)
+                conf_m = re.search(r'CONFIDENCE:\s*(\d+)|KONFIDENZ:\s*(\d+)', full)
 
-                signal    = sig_m.group(1).upper()  if sig_m  else "ABWARTEN"
-                risk      = risk_m.group(1).upper() if risk_m else "HIGH"
-                direction = dir_m.group(1).upper()  if dir_m  else "SIDEWAYS"
-                confidence= int(conf_m.group(1))    if conf_m else 50
+                # Normalize German → English signals
+                raw_sig = (sig_m.group(1) or "").upper() if sig_m else "WAIT"
+                sig_map = {"KAUFEN":"BUY","HALTEN":"HOLD","VERKAUFEN":"SELL","ABWARTEN":"WAIT"}
+                signal  = sig_map.get(raw_sig, raw_sig) or "WAIT"
+
+                raw_risk = ""
+                if risk_m:
+                    raw_risk = (risk_m.group(1) or risk_m.group(2) or "").upper()
+                risk = raw_risk or "HIGH"
+
+                raw_dir = ""
+                if dir_m:
+                    raw_dir = (dir_m.group(1) or dir_m.group(2) or "").upper()
+                direction  = raw_dir or "SIDEWAYS"
+                confidence = int(conf_m.group(1) or conf_m.group(2)) if conf_m else 50
 
                 self.after(0, lambda: self._update_signal_box(signal, risk))
                 self._record_prediction(sym, p, signal, direction, confidence, full)
 
             except Exception as e:
-                self.after(0, lambda: self._write(self.analysis_box, f"❌ {e}"))
+                self.after(0, lambda: self._write(self.analysis_box, f"Error: {e}"))
             finally:
                 self._analysis_running = False
 
@@ -1431,8 +1517,8 @@ class CryptoWindow(ctk.CTkToplevel):
 
     def _analyze_all(self):
         if not self._prices: return
-        self._tabs.set("🤖 Analyse")
-        self._write(self.analysis_box, "Analysiere gesamten Markt...")
+        self._tabs.set("🐟 Analyse")
+        self._write(self.analysis_box, "Analyzing gesamten Markt...")
 
         def _run():
             try:
@@ -1450,23 +1536,23 @@ class CryptoWindow(ctk.CTkToplevel):
                 acc = self._get_accuracy_str()
                 err = self._get_error_context()
                 msg = (
-                    f"Crypto Market Snapshot:\n" + "\n".join(rows) +
-                    f"\n\nMeine Vorhersage-Genauigkeit: {acc}\n"
+                    f"=== CRYPTO MARKET SNAPSHOT ===\n" + "\n".join(rows) +
+                    f"\n\nMy prediction accuracy: {acc}\n"
                     + (f"\n{err}\n" if err else "") +
-                    "\nGib eine KLARE Marktanalyse:\n"
-                    "1. 🌍 Gesamtmarkt-Sentiment (BULLISH/BEARISH/NEUTRAL)\n"
-                    "2. 🏆 TOP 3 Coins zum KAUFEN jetzt (mit Begründung)\n"
-                    "3. ❌ TOP 3 Coins zum MEIDEN (mit Begründung)\n"
-                    "4. ⚠️  Größtes Risiko gerade\n"
-                    "5. 🔮 Marktrichtung 24-48h: UP/DOWN/SIDEWAYS\n"
-                    "6. 💡 Eine konkrete Strategie für heute\n\n"
-                    "⚠️ KI-Spekulation — kein Finanzratschlag!"
+                    "\nProvide a CLEAR market analysis in English:\n"
+                    "1. Overall market sentiment (BULLISH / BEARISH / NEUTRAL)\n"
+                    "2. TOP 3 coins to BUY right now (with reason)\n"
+                    "3. TOP 3 coins to AVOID right now (with reason)\n"
+                    "4. Biggest risk in the market right now\n"
+                    "5. Market direction 24-48h: UP / DOWN / SIDEWAYS\n"
+                    "6. One concrete strategy for today\n\n"
+                    "DISCLAIMER: AI speculation only — not financial advice!"
                 )
                 r = requests.post(f"{OLLAMA_URL}/api/chat",
                     json={"model": self.model_var.get(),
                           "messages":[
                               {"role":"system","content":
-                               "Expert crypto market analyst. Be precise and actionable."},
+                               "Expert crypto market analyst. Always respond in English. Be precise and actionable."},
                               {"role":"user","content":msg}],
                           "stream":True,"options":{"temperature":0.3}},
                     timeout=180, stream=True)
@@ -1482,7 +1568,7 @@ class CryptoWindow(ctk.CTkToplevel):
                         if chunk.get("done"): break
                     except: continue
             except Exception as e:
-                self.after(0,lambda:self._write(self.analysis_box,f"❌ {e}"))
+                self.after(0,lambda:self._write(self.analysis_box,f"Error: {e}"))
         threading.Thread(target=_run,daemon=True).start()
 
     # ══ Gelernt Tab ══════════════════════════════════════════════════════════
@@ -1494,29 +1580,29 @@ class CryptoWindow(ctk.CTkToplevel):
         s = self._learned["session_stats"]
         acc = round(s["correct"]/s["total"]*100,1) if s["total"] else 0
         lines = [
-            f"═══ KI-LERNSTATUS ═══\n",
-            f"🎯 Genauigkeit:  {acc}%",
-            f"✓  Korrekt:      {s['correct']}",
-            f"✗  Falsch:       {s['wrong']}",
-            f"📊 Gesamt:       {s['total']} überprüfte Vorhersagen\n",
+            "=== AI LEARNING STATUS ===\n",
+            f"Accuracy:  {acc}%",
+            f"Correct:   {s['correct']}",
+            f"Wrong:     {s['wrong']}",
+            f"Total:     {s['total']} verified predictions\n",
         ]
         errs = self._learned.get("error_patterns",[])
         if errs:
-            lines.append("⚠️  Gelernte Fehler-Muster:")
+            lines.append("Learned mistakes (avoiding these):")
             for e in errs[-5:]:
-                lines.append(f"   • {e['sym']}: '{e['signal']}' war falsch ({e['pct_change']:+.1f}%)")
+                lines.append(f"  - {e['sym']}: signal '{e['signal']}' was wrong ({e['pct_change']:+.1f}%)")
             lines.append("")
 
         preds = self._learned.get("predictions",[])
         if preds:
-            lines.append(f"📝 Letzte Vorhersagen ({len(preds)} gesamt):")
+            lines.append(f"Last predictions ({len(preds)} total):")
             for x in reversed(preds[-20:]):
                 s_icon = "✓" if x.get("correct") else ("✗" if x.get("checked") else "⏳")
-                pct    = f" → {x['pct_change']:+.1f}%" if x.get("pct_change") else ""
-                lines.append(f"   {s_icon} [{x['date'][:10]}] {x['sym']:5} "
-                             f"{x['signal']:10} Konf:{x.get('confidence',0)}%{pct}")
+                pct    = f" -> {x['pct_change']:+.1f}%" if x.get("pct_change") else ""
+                lines.append(f"  {s_icon} [{x['date'][:10]}] {x['sym']:5} "
+                             f"{x['signal']:6} conf:{x.get('confidence',0)}%{pct}")
         else:
-            lines.append("Noch keine Daten.\nAnalysiere Coins → Geist lernt und verbessert sich!")
+            lines.append("No data yet.\nAnalyze coins and come back — Ghostfish learns over time!")
 
         self._write(self.learn_box, "\n".join(lines))
 
@@ -1535,10 +1621,10 @@ class CryptoWindow(ctk.CTkToplevel):
         super().destroy()
 
 
-class GeistApp(ctk.CTk):
+class GhostfishApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Geist — Deine lokale KI")
+        self.title("Ghostfish — Your Local AI")
         self.geometry("1180x740")
         self.minsize(900, 560)
         self.configure(fg_color=BG_DARK)
@@ -1768,7 +1854,7 @@ class GeistApp(ctk.CTk):
         self.current_entry = entry
         self.chat_history  = list(entry.history)
         self._clear_chatbox()
-        self._sys_msg(f"Chat geöffnet: {entry.title}")
+        self._sys_msg(f"Chat opened: {entry.title}")
 
         # Nachrichten anzeigen
         for msg in entry.history:
@@ -1955,7 +2041,7 @@ class GeistApp(ctk.CTk):
             command=self._toggle_mic)
         self.mic_btn.grid(row=0, column=3)
 
-        self._sys_msg("Geist ist bereit ✨  Neuen Chat starten oder alten Chat öffnen!")
+        self._sys_msg("Ghostfish is ready ✨  Neuen Chat starten oder alten Chat öffnen!")
 
     def _on_enter(self, event):
         if not (event.state & 0x1):
@@ -2058,7 +2144,7 @@ class GeistApp(ctk.CTk):
     def _print_msg(self, sender, text, is_user=False):
         nt = "user_name" if is_user else "ai_name"
         mt = "user_msg"  if is_user else "ai_msg"
-        pr = "  👤 " if is_user else "  👻 "
+        pr = "  👤 " if is_user else "  🐟 "
         self._chat_insert(f"\n{pr}{sender}\n", nt)
         self._chat_insert(f"  {text}\n", mt)
 
@@ -2442,7 +2528,7 @@ class GeistApp(ctk.CTk):
                 "https://api.duckduckgo.com/",
                 params={"q": query, "format": "json", "no_html": "1",
                         "skip_disambig": "1", "no_redirect": "1"},
-                headers={"User-Agent": "Geist-KI/1.0"},
+                headers={"User-Agent": "Ghostfish/1.0"},
                 timeout=10)
             resp.raise_for_status()
             data = resp.json()
@@ -2940,10 +3026,10 @@ class GeistApp(ctk.CTk):
 
     # ── Streaming UI ──────────────────────────────────────────────────────────
     def _stream_start(self):
-        """Fügt Geist-Header ein und merkt sich Position."""
+        """Inserts Ghostfish header and marks stream position."""
         self.chat_box.configure(state="normal")
         tb = self.chat_box._textbox
-        tb.insert("end", f"\n  👻 {AI_NAME}\n", "ai_name")
+        tb.insert("end", f"\n  🐟 {AI_NAME}\n", "ai_name")
         tb.insert("end", "  ", "ai_msg")
         self._stream_msg_start = tb.index("end-1c")
         self.chat_box.configure(state="disabled")
@@ -3318,7 +3404,7 @@ class GeistApp(ctk.CTk):
             # Repo-Info abrufen
             api_url  = f"https://api.github.com/repos/{owner}/{repo_name}"
             headers  = {"Accept": "application/vnd.github.v3+json",
-                        "User-Agent": "Geist-KI"}
+                        "User-Agent": "Ghostfish"}
 
             info_resp = requests.get(api_url, headers=headers, timeout=15)
             if info_resp.status_code == 404:
@@ -3860,7 +3946,7 @@ class GeistApp(ctk.CTk):
         ctk.CTkLabel(scroll,
             text="\n📡  Externe KI-Modelle\n"
                  "Mit API-Keys kannst du /model claude, /model gemini oder /model gpt4 nutzen.\n"
-                 "Ohne Key läuft Geist komplett lokal über Ollama — kein Internet nötig!",
+                 "Without a key, Ghostfish runs fully local via Ollama — no internet needed!",
             font=ctk.CTkFont(size=11), text_color=TEXT_DIM,
             justify="left", wraplength=500
             ).grid(row=row2, column=0, sticky="w", pady=8, padx=4)
@@ -3989,7 +4075,7 @@ class GeistApp(ctk.CTk):
         OLLAMA_URL=self.url_entry.get().strip().rstrip("/")
         OBSIDIAN_FOLDER=self.obsidian_entry.get().strip()
         FILES_FOLDER=self.files_entry.get().strip()
-        AI_NAME=self.name_entry.get().strip() or "Geist"
+        AI_NAME=self.name_entry.get().strip() or "Ghostfish"
         for f in [OBSIDIAN_FOLDER,FILES_FOLDER]: Path(f).mkdir(exist_ok=True)
         self._sys_msg("✓  Gespeichert.")
         self._check_ollama()
@@ -4088,11 +4174,11 @@ class GeistApp(ctk.CTk):
         try:
             self.after(0, lambda: self._sys_msg(f"📖  Wikipedia: {query}..."))
             url = "https://de.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(query)
-            r = requests.get(url, timeout=10, headers={"User-Agent":"Geist-KI/1.0"})
+            r = requests.get(url, timeout=10, headers={"User-Agent":"Ghostfish/1.0"})
             if r.status_code == 404:
                 # Englisch probieren
                 url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(query)
-                r = requests.get(url, timeout=10, headers={"User-Agent":"Geist-KI/1.0"})
+                r = requests.get(url, timeout=10, headers={"User-Agent":"Ghostfish/1.0"})
             r.raise_for_status()
             data = r.json()
             extract = data.get("extract","Kein Inhalt gefunden.")
@@ -4597,7 +4683,7 @@ class GeistApp(ctk.CTk):
                 if results:
                     user_msg = (f"Suchergebnisse:\n\n" +
                                 "\n\n".join(results) +
-                                "\n\nAnalysiere und berichte kurz.")
+                                "\n\nAnalyzing und berichte kurz.")
 
             sys_prompt = (bot.get("system") or
                           f"Du bist {bot['name']}. {bot['desc']}")
@@ -4639,7 +4725,7 @@ class GeistApp(ctk.CTk):
             url = (f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}"
                    f"&format=json&no_html=1&skip_disambig=1")
             r = requests.get(url, timeout=8,
-                             headers={"User-Agent":"Geist-KI/1.0"})
+                             headers={"User-Agent":"Ghostfish/1.0"})
             d = r.json()
             parts = []
             if d.get("Answer"):       parts.append(d["Answer"])
@@ -4813,7 +4899,7 @@ class GeistApp(ctk.CTk):
             "3. Modell auf PC 2 laden:\n"
             "   ollama pull llava\n"
             "4. IP von PC 2 oben eintragen und testen\n\n"
-            "Geist erkennt automatisch:\n"
+            "Ghostfish detects automatically:\n"
             "  Bild gesendet   --> Vision-Agent (PC 2)\n"
             "  Code-Frage      --> Code-Expert Modell\n"
             "  Normal-Chat     --> Lokaler Agent"
@@ -4841,12 +4927,12 @@ class GeistApp(ctk.CTk):
                f"> **Modell:** `{self.selected_model.get()}`","","---",""]
         for m in self.chat_history:
             iu=m["role"]=="user"
-            lines+=[f"#### {'👤 Du' if iu else f'👻 {AI_NAME}'}","",m["content"],""]
+            lines+=[f"#### {'👤 Du' if iu else f'🐟 {AI_NAME}'}","",m["content"],""]
         path.write_text("\n".join(lines),encoding="utf-8")
         self._sys_msg(f"✓  Gespeichert: {path.resolve()}")
         if os.name=="nt": os.startfile(str(path.resolve()))
 
 
 if __name__=="__main__":
-    app=GeistApp()
+    app=GhostfishApp()
     app.mainloop()
